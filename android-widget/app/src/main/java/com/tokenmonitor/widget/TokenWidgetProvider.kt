@@ -20,8 +20,8 @@ class TokenWidgetProvider : AppWidgetProvider() {
         fun updateWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
             val views = RemoteViews(context.packageName, R.layout.widget_layout)
             val prefs = context.getSharedPreferences("token_widget_prefs", Context.MODE_PRIVATE)
-            val apiUrl = prefs.getString("api_url", "https://creation-subprime-underwear.ngrok-free.dev")
-                ?: "https://creation-subprime-underwear.ngrok-free.dev"
+            val apiUrl = prefs.getString("api_url", "https://khalil0601.github.io/token-monitor")
+                ?: "https://khalil0601.github.io/token-monitor"
 
             // Set click to open main activity
             val intent = Intent(context, MainActivity::class.java).apply {

@@ -18,16 +18,24 @@ object ApiService {
     suspend fun fetchUsage(apiUrl: String): AllUsageResponse? {
         return withContext(Dispatchers.IO) {
             try {
-                val url = if (apiUrl.endsWith("/")) apiUrl + "api/all" else "$apiUrl/api/all"
-                val request = Request.Builder()
-                    .url(url)
-                    .header("ngrok-skip-browser-warning", "true")
-                    .build()
-                val response = client.newCall(request).execute()
-                if (response.isSuccessful) {
-                    val body = response.body?.string()
-                    if (body != null) gson.fromJson(body, AllUsageResponse::class.java) else null
-                } else null
+                // Try api_status.json first (GitHub Pages), then /api/all (server)
+                val urls = listOf(
+                    if (apiUrl.endsWith("/")) apiUrl + "api_status.json" else "$apiUrl/api_status.json",
+                    if (apiUrl.endsWith("/")) apiUrl + "api/all" else "$apiUrl/api/all"
+                )
+                var lastResponse: okhttp3.Response? = null
+                for (url in urls) {
+                    val request = Request.Builder().url(url)
+                        .header("ngrok-skip-browser-warning", "true")
+                        .build()
+                    val response = client.newCall(request).execute()
+                    if (response.isSuccessful) {
+                        val body = response.body?.string()
+                        if (body != null) return@withContext gson.fromJson(body, AllUsageResponse::class.java)
+                    }
+                    lastResponse = response
+                }
+                null
             } catch (_: Exception) {
                 null
             }
