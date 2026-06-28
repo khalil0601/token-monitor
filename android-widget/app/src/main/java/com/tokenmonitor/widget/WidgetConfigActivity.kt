@@ -7,8 +7,7 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
-
+import androidx.glance.appwidget.GlanceAppWidgetManager
 class WidgetConfigActivity : Activity() {
 
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
@@ -78,8 +77,10 @@ class WidgetConfigActivity : Activity() {
                     // Save URL
                     prefs.edit().putString("api_url", url).apply()
 
-                    // Update widget
-                    TokenWidget().update(this@WidgetConfigActivity, appWidgetId)
+                    // Update widget via Glance
+                    val glanceId = GlanceAppWidgetManager(this@WidgetConfigActivity)
+                        .getGlanceIdBy(appWidgetId)
+                    TokenWidget().update(this@WidgetConfigActivity, glanceId)
 
                     // Schedule periodic updates
                     TokenWidgetWorker.schedule(this@WidgetConfigActivity)
