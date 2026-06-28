@@ -1,12 +1,14 @@
 package com.tokenmonitor.widget
 
 import android.app.Activity
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.Gravity
 import android.view.View
 import android.widget.*
@@ -189,6 +191,9 @@ class MainActivity : Activity() {
 
                     val now = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
                     timeText.text = "实时 · $now"
+
+                    // Sync widget immediately
+                    updateWidget()
                 }
             } catch (_: Exception) {
                 withContext(Dispatchers.Main) {
@@ -197,5 +202,15 @@ class MainActivity : Activity() {
                 }
             }
         }
+    }
+
+    private fun updateWidget() {
+        val intent = Intent(this, TokenWidgetProvider::class.java).apply {
+            action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+        }
+        val ids = AppWidgetManager.getInstance(this)
+            .getAppWidgetIds(ComponentName(this, TokenWidgetProvider::class.java))
+        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
+        sendBroadcast(intent)
     }
 }
