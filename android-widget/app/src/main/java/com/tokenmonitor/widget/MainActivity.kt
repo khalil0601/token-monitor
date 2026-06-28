@@ -188,7 +188,7 @@ class MainActivity : Activity() {
                     }
 
                     val now = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
-                    timeText.text = "上次更新: $now"
+                    timeText.text = "实时 · $now"
                 }
             } catch (_: Exception) {
                 withContext(Dispatchers.Main) {

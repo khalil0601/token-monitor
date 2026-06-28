@@ -2,7 +2,7 @@ name: Check API Balance & Publish
 
 on:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '* * * * *'
   workflow_dispatch:
 
 permissions:
