@@ -1,0 +1,138 @@
+name: Check API Balance & Publish
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'  # Every 30 minutes
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install deps
+        run: pip install httpx
+
+      - name: Fetch all balances
+        run: |
+          python3 << 'PYEOF'
+          import httpx, json, os
+
+          result = {"timestamp": "", "anthropic": {}, "openai": {}, "deepseek": {}}
+
+          from datetime import datetime, timezone
+          result["timestamp"] = datetime.now(timezone.utc).isoformat()
+
+          # DeepSeek
+          ds_key = os.environ.get("DEEPSEEK_API_KEY", "")
+          if ds_key:
+              try:
+                  r = httpx.get("https://api.deepseek.com/user/balance",
+                      headers={"Authorization": f"Bearer {ds_key}"}, timeout=15)
+                  if r.status_code == 200:
+                      d = r.json()
+                      bi = d.get("balance_infos", [{}])[0] if d.get("balance_infos") else {}
+                      total = float(bi.get("total_balance", "0"))
+                      result["deepseek"] = {
+                          "provider": "deepseek",
+                          "total_balance_cny": round(total, 2),
+                          "topped_up_cny": round(float(bi.get("topped_up_balance", "0")), 2),
+                          "granted_cny": round(float(bi.get("granted_balance", "0")), 2),
+                          "estimated_tokens": int(total / 1.5 * 1_000_000),
+                          "unit": "CNY"
+                      }
+                  else:
+                      result["deepseek"] = {"error": f"HTTP {r.status_code}"}
+              except Exception as e:
+                  result["deepseek"] = {"error": str(e)}
+          else:
+              result["deepseek"] = {"error": "not configured"}
+
+          # Anthropic
+          ant_key = os.environ.get("ANTHROPIC_API_KEY", "")
+          if ant_key:
+              try:
+                  r = httpx.get("https://api.anthropic.com/v1/organizations",
+                      headers={"x-api-key": ant_key, "anthropic-version": "2023-06-01"}, timeout=15)
+                  org_id = None
+                  if r.status_code == 200:
+                      orgs = r.json()
+                      if orgs.get("data"):
+                          org_id = orgs["data"][0]["id"]
+                  if org_id:
+                      r2 = httpx.get(f"https://api.anthropic.com/v1/organizations/{org_id}/usage",
+                          headers={"x-api-key": ant_key, "anthropic-version": "2023-06-01"}, timeout=15)
+                      if r2.status_code == 200:
+                          usage = r2.json()
+                          items = usage.get("data", [])
+                          total_in, total_out = 0, 0
+                          for it in items:
+                              total_in += it.get("input_tokens", 0)
+                              total_out += it.get("output_tokens", 0)
+                          used = total_in + total_out
+                          limit = 500000
+                          result["anthropic"] = {
+                              "provider": "anthropic",
+                              "total_used": used,
+                              "monthly_limit": limit,
+                              "remaining": max(0, limit - used),
+                              "usage_percent": round(used / limit * 100, 1) if limit > 0 else 0,
+                              "estimated_cost_usd": round(total_in * 3.0 / 1_000_000 + total_out * 15.0 / 1_000_000, 4)
+                          }
+                      else:
+                          result["anthropic"] = {"error": f"usage HTTP {r2.status_code}"}
+                  else:
+                      result["anthropic"] = {"error": "no org found"}
+              except Exception as e:
+                  result["anthropic"] = {"error": str(e)}
+          else:
+              result["anthropic"] = {"error": "not configured"}
+
+          # OpenAI
+          oai_key = os.environ.get("OPENAI_API_KEY", "")
+          if oai_key:
+              try:
+                  d = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+                  r = httpx.get(f"https://api.openai.com/v1/usage?date={d}",
+                      headers={"Authorization": f"Bearer {oai_key}"}, timeout=15)
+                  if r.status_code == 200:
+                      result["openai"] = {"provider": "openai", "total_used": r.json().get("total_usage", 0),
+                          "monthly_limit": 1000000, "remaining": 1000000, "usage_percent": 0, "estimated_cost_usd": 0}
+                  else:
+                      result["openai"] = {"error": f"HTTP {r.status_code}"}
+              except Exception as e:
+                  result["openai"] = {"error": str(e)}
+          else:
+              result["openai"] = {"error": "not configured"}
+
+          os.makedirs("docs", exist_ok=True)
+          with open("docs/api_status.json", "w") as f:
+              json.dump(result, f, ensure_ascii=False, indent=2)
+          print("✅ Balance saved to docs/api_status.json")
+          print(json.dumps(result, ensure_ascii=False, indent=2))
+          PYEOF
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+      - name: Publish to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          publish_branch: gh-pages
+          keep_files: true
