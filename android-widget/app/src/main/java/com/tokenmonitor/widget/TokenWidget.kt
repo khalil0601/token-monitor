@@ -10,6 +10,7 @@ import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.actionStartActivity
+import androidx.glance.action.clickable
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
@@ -25,6 +26,7 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
+import androidx.compose.ui.unit.sp
 
 class TokenWidget : GlanceAppWidget() {
 
@@ -87,7 +89,7 @@ class TokenWidget : GlanceAppWidget() {
                             text = "⚡ Token Monitor",
                             style = TextStyle(
                                 color = ColorProvider(Color.parseColor("#e2e8f0")),
-                                fontSize = 14,
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold
                             ),
                             modifier = GlanceModifier.defaultWeight()
@@ -106,7 +108,7 @@ class TokenWidget : GlanceAppWidget() {
                                 text = "●",
                                 style = TextStyle(
                                     color = ColorProvider(Color.parseColor("#4f46e5")),
-                                    fontSize = 8
+                                    fontSize = 8.sp
                                 )
                             )
                             Spacer(modifier = GlanceModifier.width(4))
@@ -114,7 +116,7 @@ class TokenWidget : GlanceAppWidget() {
                                 text = "DeepSeek",
                                 style = TextStyle(
                                     color = ColorProvider(Color.parseColor("#94a3b8")),
-                                    fontSize = 11
+                                    fontSize = 11.sp
                                 ),
                                 modifier = GlanceModifier.defaultWeight()
                             )
@@ -123,7 +125,7 @@ class TokenWidget : GlanceAppWidget() {
                                     text = dsBalance,
                                     style = TextStyle(
                                         color = ColorProvider(Color.parseColor("#e2e8f0")),
-                                        fontSize = 12,
+                                        fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold
                                     )
                                 )
@@ -131,7 +133,7 @@ class TokenWidget : GlanceAppWidget() {
                                     text = dsSub,
                                     style = TextStyle(
                                         color = ColorProvider(Color.parseColor("#64748b")),
-                                        fontSize = 9
+                                        fontSize = 9.sp
                                     )
                                 )
                             }
@@ -148,7 +150,7 @@ class TokenWidget : GlanceAppWidget() {
                                 text = "●",
                                 style = TextStyle(
                                     color = ColorProvider(Color.parseColor("#d97706")),
-                                    fontSize = 8
+                                    fontSize = 8.sp
                                 )
                             )
                             Spacer(modifier = GlanceModifier.width(4))
@@ -156,7 +158,7 @@ class TokenWidget : GlanceAppWidget() {
                                 text = "Anthropic",
                                 style = TextStyle(
                                     color = ColorProvider(Color.parseColor("#94a3b8")),
-                                    fontSize = 11
+                                    fontSize = 11.sp
                                 ),
                                 modifier = GlanceModifier.defaultWeight()
                             )
@@ -165,7 +167,7 @@ class TokenWidget : GlanceAppWidget() {
                                     text = antValue,
                                     style = TextStyle(
                                         color = ColorProvider(Color.parseColor("#e2e8f0")),
-                                        fontSize = 12,
+                                        fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold
                                     )
                                 )
@@ -173,7 +175,7 @@ class TokenWidget : GlanceAppWidget() {
                                     text = antSub,
                                     style = TextStyle(
                                         color = ColorProvider(Color.parseColor("#64748b")),
-                                        fontSize = 9
+                                        fontSize = 9.sp
                                     )
                                 )
                             }
@@ -190,7 +192,7 @@ class TokenWidget : GlanceAppWidget() {
                                 text = "●",
                                 style = TextStyle(
                                     color = ColorProvider(Color.parseColor("#10a37f")),
-                                    fontSize = 8
+                                    fontSize = 8.sp
                                 )
                             )
                             Spacer(modifier = GlanceModifier.width(4))
@@ -198,7 +200,7 @@ class TokenWidget : GlanceAppWidget() {
                                 text = "OpenAI",
                                 style = TextStyle(
                                     color = ColorProvider(Color.parseColor("#94a3b8")),
-                                    fontSize = 11
+                                    fontSize = 11.sp
                                 ),
                                 modifier = GlanceModifier.defaultWeight()
                             )
@@ -207,7 +209,7 @@ class TokenWidget : GlanceAppWidget() {
                                     text = oaiValue,
                                     style = TextStyle(
                                         color = ColorProvider(Color.parseColor("#e2e8f0")),
-                                        fontSize = 12,
+                                        fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold
                                     )
                                 )
@@ -215,7 +217,7 @@ class TokenWidget : GlanceAppWidget() {
                                     text = oaiSub,
                                     style = TextStyle(
                                         color = ColorProvider(Color.parseColor("#64748b")),
-                                        fontSize = 9
+                                        fontSize = 9.sp
                                     )
                                 )
                             }
@@ -228,7 +230,7 @@ class TokenWidget : GlanceAppWidget() {
                             text = if (data != null) "⚠️ 请先配置 API Key" else "⏳ 加载中...",
                             style = TextStyle(
                                 color = ColorProvider(Color.parseColor("#64748b")),
-                                fontSize = 12
+                                fontSize = 12.sp
                             )
                         )
                     }
