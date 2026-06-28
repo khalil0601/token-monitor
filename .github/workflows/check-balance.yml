@@ -2,23 +2,23 @@ name: Check API Balance & Publish
 
 on:
   schedule:
-    - cron: '*/30 * * * *'  # Every 30 minutes
+    - cron: '*/30 * * * *'
   workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
 
 jobs:
   check:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -26,15 +26,13 @@ jobs:
       - name: Install deps
         run: pip install httpx
 
-      - name: Fetch all balances
+      - name: Fetch API balances
         run: |
           python3 << 'PYEOF'
           import httpx, json, os
-
-          result = {"timestamp": "", "anthropic": {}, "openai": {}, "deepseek": {}}
-
           from datetime import datetime, timezone
-          result["timestamp"] = datetime.now(timezone.utc).isoformat()
+
+          result = {"timestamp": datetime.now(timezone.utc).isoformat()}
 
           # DeepSeek
           ds_key = os.environ.get("DEEPSEEK_API_KEY", "")
@@ -78,17 +76,13 @@ jobs:
                       if r2.status_code == 200:
                           usage = r2.json()
                           items = usage.get("data", [])
-                          total_in, total_out = 0, 0
-                          for it in items:
-                              total_in += it.get("input_tokens", 0)
-                              total_out += it.get("output_tokens", 0)
+                          total_in = sum(it.get("input_tokens", 0) for it in items)
+                          total_out = sum(it.get("output_tokens", 0) for it in items)
                           used = total_in + total_out
                           limit = 500000
                           result["anthropic"] = {
-                              "provider": "anthropic",
-                              "total_used": used,
-                              "monthly_limit": limit,
-                              "remaining": max(0, limit - used),
+                              "provider": "anthropic", "total_used": used,
+                              "monthly_limit": limit, "remaining": max(0, limit - used),
                               "usage_percent": round(used / limit * 100, 1) if limit > 0 else 0,
                               "estimated_cost_usd": round(total_in * 3.0 / 1_000_000 + total_out * 15.0 / 1_000_000, 4)
                           }
@@ -118,21 +112,43 @@ jobs:
           else:
               result["openai"] = {"error": "not configured"}
 
-          os.makedirs("docs", exist_ok=True)
-          with open("docs/api_status.json", "w") as f:
+          os.makedirs("_site", exist_ok=True)
+          with open("_site/api_status.json", "w") as f:
               json.dump(result, f, ensure_ascii=False, indent=2)
-          print("✅ Balance saved to docs/api_status.json")
-          print(json.dumps(result, ensure_ascii=False, indent=2))
+
+          # Also generate index.html
+          html = '''<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Token Monitor</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,sans-serif;background:#0f172a;color:#e2e8f0;min-height:100vh;display:flex;justify-content:center;align-items:center;padding:16px}.card{background:#1e293b;border-radius:20px;padding:24px;max-width:400px;width:100%}h1{font-size:1.4rem;margin-bottom:4px}.sub{color:#64748b;font-size:.75rem;margin-bottom:16px}.row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06)}.row:last-child{border-bottom:none}.label{font-size:.85rem;color:#94a3b8}.val{font-size:1rem;font-weight:600}.ds{color:#a5b4fc}.ant{color:#fbbf24}.oai{color:#34d399}.loading{text-align:center;color:#64748b;padding:40px}.time{font-size:.65rem;color:#475569;text-align:center;margin-top:16px}</style></head><body><div class=card><h1>⚡ Token Monitor</h1><div class=sub>API余额 · 每30分钟自动更新</div><div id=c>'''
+          ds = result.get("deepseek", {})
+          if ds and not ds.get("error"):
+              html += f'<div class=row><span class=label>● DeepSeek</span><span class="val ds">¥{ds["total_balance_cny"]:.2f}</span></div>'
+              html += f'<div class=row><span class=label>&nbsp; 充值 / 赠送</span><span class=val style=font-size:.8rem;color:#94a3b8>¥{ds["topped_up_cny"]:.2f} / ¥{ds["granted_cny"]:.2f}</span></div>'
+              html += f'<div class=row><span class=label>&nbsp; 预估可用</span><span class=val style=font-size:.8rem;color:#94a3b8>{ds["estimated_tokens"]/1000000:.1f}M tokens</span></div>'
+          ant = result.get("anthropic", {})
+          if ant and not ant.get("error") and ant.get("remaining", 0) > 0:
+              html += f'<div class=row><span class=label>● Anthropic</span><span class="val ant">{ant["remaining"]:,} tokens</span></div>'
+          oai = result.get("openai", {})
+          if oai and not oai.get("error") and oai.get("remaining", 0) > 0:
+              html += f'<div class=row><span class=label>● OpenAI</span><span class="val oai">{oai["remaining"]:,} tokens</span></div>'
+          if not html.split('<div class=row>')[1:]:
+              html += '<div class=loading>⚠️ 请配置 API Key</div>'
+          html += f'</div><div class=time>更新: <span id=t></span></div><script>document.getElementById("t").textContent=new Date("{result["timestamp"]}").toLocaleString("zh-CN")</script></body></html>'
+          with open("_site/index.html", "w", encoding='utf-8') as f:
+              f.write(html)
+          print("✅ Generated _site/")
           PYEOF
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
-      - name: Publish to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
-          publish_branch: gh-pages
-          keep_files: true
+          path: '_site'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
