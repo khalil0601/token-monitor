@@ -14,6 +14,8 @@
     --anthropic-glow: rgba(217, 119, 6, 0.3);
     --openai: #10a37f;
     --openai-glow: rgba(16, 163, 127, 0.3);
+    --deepseek: #4f46e5;
+    --deepseek-glow: rgba(79, 70, 229, 0.3);
     --danger: #ef4444;
     --success: #22c55e;
     --warning: #f59e0b;
@@ -158,6 +160,9 @@ body::before {
 .card-openai::before {
     background: linear-gradient(90deg, var(--openai), transparent);
 }
+.card-deepseek::before {
+    background: linear-gradient(90deg, var(--deepseek), transparent);
+}
 
 .card-header {
     display: flex;
@@ -184,6 +189,10 @@ body::before {
 .openai-badge {
     background: rgba(16, 163, 127, 0.15);
     color: #34d399;
+}
+.deepseek-badge {
+    background: rgba(79, 70, 229, 0.15);
+    color: #a5b4fc;
 }
 
 .card-status {
@@ -239,6 +248,10 @@ body::before {
 .openai-progress {
     stroke: var(--openai);
     filter: drop-shadow(0 0 6px var(--openai-glow));
+}
+.deepseek-progress {
+    stroke: var(--deepseek);
+    filter: drop-shadow(0 0 6px var(--deepseek-glow));
 }
 
 /* Color by usage level */
@@ -317,6 +330,9 @@ body::before {
 }
 .openai-fill {
     background: linear-gradient(90deg, var(--openai), #34d399);
+}
+.deepseek-fill {
+    background: linear-gradient(90deg, var(--deepseek), #a5b4fc);
 }
 
 /* ===== Setup Prompt (no API key) ===== */

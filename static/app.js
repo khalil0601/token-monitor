@@ -1,6 +1,7 @@
 /**
  * Token Monitor - Frontend Logic
  * Fetches API usage data and updates the widget cards.
+ * Supports: Anthropic, OpenAI, DeepSeek
  */
 
 const RING_CIRCUMFERENCE = 2 * Math.PI * 52; // ≈ 326.73
@@ -47,12 +48,14 @@ async function refreshAll() {
         const data = await resp.json();
         updateCard('anthropic', data.anthropic);
         updateCard('openai', data.openai);
+        updateCard('deepseek', data.deepseek);
         updateTimestamp(data.timestamp);
 
     } catch (err) {
         console.error('Refresh failed:', err);
         setError('anthropic');
         setError('openai');
+        setError('deepseek');
         updateTimestamp(null, err.message);
     } finally {
         isRefreshing = false;
@@ -68,17 +71,34 @@ function updateCard(provider, data) {
         return;
     }
 
-    const used = data.total_used || 0;
-    const limit = data.monthly_limit || 1;
-    const remaining = data.remaining || 0;
-    const percent = data.usage_percent || 0;
-
     // Status dot
     const statusEl = document.getElementById(`${provider}Status`);
     if (statusEl) {
         statusEl.className = 'card-status connected';
         statusEl.title = '已连接';
     }
+
+    // DeepSeek uses CNY balance, different display logic
+    if (provider === 'deepseek') {
+        updateDeepseekCard(data);
+    } else {
+        updateTokenCard(provider, data);
+    }
+
+    // Store data for potential offline use
+    try {
+        localStorage.setItem(`token_monitor_${provider}`, JSON.stringify({
+            ...data,
+            cachedAt: Date.now(),
+        }));
+    } catch (_) {}
+}
+
+function updateTokenCard(provider, data) {
+    const used = data.total_used || 0;
+    const limit = data.monthly_limit || 1;
+    const remaining = data.remaining || 0;
+    const percent = data.usage_percent || 0;
 
     // Ring circle
     const circle = document.getElementById(`${provider}Circle`);
@@ -112,14 +132,45 @@ function updateCard(provider, data) {
     if (bar) {
         bar.style.width = `${Math.min(percent, 100)}%`;
     }
+}
 
-    // Store data for potential offline use
-    try {
-        localStorage.setItem(`token_monitor_${provider}`, JSON.stringify({
-            ...data,
-            cachedAt: Date.now(),
-        }));
-    } catch (_) {}
+function updateDeepseekCard(data) {
+    const balance = data.total_balance_cny || 0;
+    const toppedUp = data.topped_up_cny || 0;
+    const granted = data.granted_cny || 0;
+    const estTokens = data.estimated_tokens || 0;
+
+    // Ring: show full circle with glow, balance in center
+    const circle = document.getElementById('deepseekCircle');
+    if (circle) {
+        circle.setAttribute('stroke-dasharray', `${RING_CIRCUMFERENCE} ${RING_CIRCUMFERENCE}`);
+        circle.setAttribute('stroke-dashoffset', '0');
+        circle.classList.remove('danger', 'warning');
+        // Color based on balance level
+        if (balance <= 1) circle.classList.add('danger');
+        else if (balance <= 5) circle.classList.add('warning');
+    }
+
+    // Balance display
+    const balEl = document.getElementById('deepseekBalance');
+    if (balEl) {
+        balEl.textContent = `¥${balance.toFixed(2)}`;
+        if (balance <= 1) balEl.style.color = '#ef4444';
+        else if (balance <= 5) balEl.style.color = '#f59e0b';
+        else balEl.style.color = '#22c55e';
+    }
+
+    // Stats
+    setStatValue('deepseekToppedUp', `¥${toppedUp.toFixed(2)}`);
+    setStatValue('deepseekGranted', `¥${granted.toFixed(2)}`);
+    setStatValue('deepseekTokens', formatNumber(estTokens));
+
+    // Progress bar: just decorative, show balance health
+    const bar = document.getElementById('deepseekBar');
+    if (bar) {
+        const healthPercent = Math.min(balance / 50 * 100, 100); // ¥50 as "full" reference
+        bar.style.width = `${Math.max(healthPercent, 2)}%`;
+    }
 }
 
 function setStatValue(id, value) {
@@ -150,9 +201,15 @@ function setError(provider, msg) {
     const pctEl = document.getElementById(`${provider}Percent`);
     if (pctEl) { pctEl.textContent = '--'; pctEl.style.color = ''; }
 
+    const balEl = document.getElementById(`${provider}Balance`);
+    if (balEl) { balEl.textContent = '--'; balEl.style.color = ''; }
+
     setStatValue(`${provider}Used`, '--');
     setStatValue(`${provider}Limit`, '--');
     setStatValue(`${provider}Cost`, '--');
+    setStatValue(`${provider}ToppedUp`, '--');
+    setStatValue(`${provider}Granted`, '--');
+    setStatValue(`${provider}Tokens`, '--');
 }
 
 function updateTimestamp(isoString, errorMsg) {

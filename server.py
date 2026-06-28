@@ -27,6 +27,7 @@ app.add_middleware(
 
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
 ANTHROPIC_ORG_ID = os.getenv("ANTHROPIC_ORG_ID", "")
 
 
@@ -39,6 +40,7 @@ async def status():
         "providers": {
             "anthropic": bool(ANTHROPIC_API_KEY),
             "openai": bool(OPENAI_API_KEY),
+            "deepseek": bool(DEEPSEEK_API_KEY),
         },
     }
 
@@ -123,6 +125,36 @@ async def openai_usage():
             )
 
 
+@app.get("/api/deepseek/balance")
+async def deepseek_balance():
+    """Fetch DeepSeek account balance."""
+    if not DEEPSEEK_API_KEY:
+        raise HTTPException(status_code=400, detail="DEEPSEEK_API_KEY not configured")
+
+    headers = {
+        "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        try:
+            resp = await client.get(
+                "https://api.deepseek.com/user/balance",
+                headers=headers,
+            )
+
+            if resp.status_code == 200:
+                data = resp.json()
+                return _format_deepseek_balance(data)
+            else:
+                return _mock_deepseek_response()
+
+        except Exception as e:
+            raise HTTPException(
+                status_code=502, detail=f"DeepSeek API error: {str(e)}"
+            )
+
+
 @app.get("/api/all")
 async def all_usage():
     """Fetch all providers' usage in one call."""
@@ -184,6 +216,27 @@ async def all_usage():
             result["openai"] = {"error": "API key not configured"}
     except Exception as e:
         result["openai"] = {"error": str(e)}
+
+    # DeepSeek
+    try:
+        if DEEPSEEK_API_KEY:
+            headers = {
+                "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+                "Content-Type": "application/json",
+            }
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                resp = await client.get(
+                    "https://api.deepseek.com/user/balance",
+                    headers=headers,
+                )
+                if resp.status_code == 200:
+                    result["deepseek"] = _format_deepseek_balance(resp.json())
+                else:
+                    result["deepseek"] = _mock_deepseek_response()
+        else:
+            result["deepseek"] = {"error": "API key not configured"}
+    except Exception as e:
+        result["deepseek"] = {"error": str(e)}
 
     return result
 
@@ -288,6 +341,49 @@ def _mock_openai_response() -> dict:
         "usage_percent": 0,
         "estimated_cost_usd": 0.0,
         "unit": "tokens",
+    }
+
+
+def _format_deepseek_balance(data: dict) -> dict:
+    """Normalize DeepSeek balance data into a standard format."""
+    is_available = data.get("is_available", False)
+    balance_infos = data.get("balance_infos", [])
+
+    total_balance_cny = 0.0
+    topped_up_cny = 0.0
+    granted_cny = 0.0
+
+    if balance_infos:
+        for info in balance_infos:
+            total_balance_cny += float(info.get("total_balance", "0"))
+            topped_up_cny += float(info.get("topped_up_balance", "0"))
+            granted_cny += float(info.get("granted_balance", "0"))
+
+    # DeepSeek pricing: ~¥1 per 1M input tokens, ¥2 per 1M output tokens
+    # Estimate remaining tokens based on balance at ~¥1.5/MTok blended rate
+    estimated_tokens = int(total_balance_cny / 1.5 * 1_000_000) if total_balance_cny > 0 else 0
+
+    return {
+        "provider": "deepseek",
+        "is_available": is_available,
+        "total_balance_cny": round(total_balance_cny, 2),
+        "topped_up_cny": round(topped_up_cny, 2),
+        "granted_cny": round(granted_cny, 2),
+        "estimated_tokens": estimated_tokens,
+        "unit": "CNY",
+    }
+
+
+def _mock_deepseek_response() -> dict:
+    """Return mock data when API is unreachable."""
+    return {
+        "provider": "deepseek",
+        "is_available": True,
+        "total_balance_cny": 0.0,
+        "topped_up_cny": 0.0,
+        "granted_cny": 0.0,
+        "estimated_tokens": 0,
+        "unit": "CNY",
     }
 
 

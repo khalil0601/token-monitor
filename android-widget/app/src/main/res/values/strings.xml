@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Token Monitor</string>
+    <string name="widget_desc">实时显示 API Token 余额</string>
+    <string name="config_title">配置后端地址</string>
+    <string name="config_hint">输入 Token Monitor 的后端 URL</string>
+    <string name="config_default">https://creation-subprime-underwear.ngrok-free.dev</string>
+    <string name="config_save">保存</string>
+    <string name="loading">加载中…</string>
+    <string name="error">连接失败</string>
+</resources>

@@ -119,6 +119,49 @@
                     </div>
                 </div>
             </div>
+
+            <!-- DeepSeek Card -->
+            <div class="card card-deepseek" id="deepseekCard">
+                <div class="card-header">
+                    <div class="provider-badge deepseek-badge">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
+                        DeepSeek
+                    </div>
+                    <span class="card-status" id="deepseekStatus">●</span>
+                </div>
+                <div class="card-body">
+                    <div class="ring-container">
+                        <svg class="ring" viewBox="0 0 120 120" id="deepseekRing">
+                            <circle class="ring-bg" cx="60" cy="60" r="52"/>
+                            <circle class="ring-progress deepseek-progress" cx="60" cy="60" r="52"
+                                    id="deepseekCircle" stroke-dasharray="327 327"/>
+                        </svg>
+                        <div class="ring-text">
+                            <span class="ring-percent" id="deepseekBalance">--</span>
+                            <span class="ring-label">余额(元)</span>
+                        </div>
+                    </div>
+                    <div class="stats">
+                        <div class="stat-item">
+                            <span class="stat-label">充值余额</span>
+                            <span class="stat-value" id="deepseekToppedUp">--</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">赠送余额</span>
+                            <span class="stat-value" id="deepseekGranted">--</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">预估可用</span>
+                            <span class="stat-value" id="deepseekTokens">--</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="progress-bar">
+                        <div class="progress-fill deepseek-fill" id="deepseekBar"></div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <footer class="footer">
