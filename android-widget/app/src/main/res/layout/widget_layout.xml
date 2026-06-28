@@ -7,14 +7,41 @@
     android:orientation="vertical"
     android:padding="12dp">
 
-    <TextView
-        android:id="@+id/widget_title"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="⚡ Token Monitor"
-        android:textColor="#e2e8f0"
-        android:textSize="14sp"
-        android:textStyle="bold" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/widget_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="⚡ Token Monitor"
+            android:textColor="#e2e8f0"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/widget_refresh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🔄"
+            android:textSize="14sp"
+            android:paddingLeft="12dp"
+            android:paddingRight="4dp"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
+            android:id="@+id/widget_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="#475569"
+            android:textSize="9sp" />
+    </LinearLayout>
 
     <TextView
         android:id="@+id/widget_content"
@@ -24,6 +51,6 @@
         android:lineSpacingExtra="3dp"
         android:text="⏳ 加载中..."
         android:textColor="#94a3b8"
-        android:textSize="11sp" />
+        android:textSize="12sp" />
 
 </LinearLayout>
