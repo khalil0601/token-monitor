@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Token Monitor</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,sans-serif;background:#0f172a;color:#e2e8f0;min-height:100vh;display:flex;justify-content:center;align-items:center;padding:16px}
+.card{background:#1e293b;border-radius:20px;padding:24px;max-width:400px;width:100%}
+h1{font-size:1.4rem;margin-bottom:4px}
+.sub{color:#64748b;font-size:.75rem;margin-bottom:16px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.row:last-child{border-bottom:none}
+.label{font-size:.85rem;color:#94a3b8}
+.value{font-size:1rem;font-weight:600}
+.ds{color:#a5b4fc} .ant{color:#fbbf24} .oai{color:#34d399}
+.loading{text-align:center;color:#64748b;padding:40px}
+.error{color:#ef4444;font-size:.85rem}
+.time{font-size:.65rem;color:#475569;text-align:center;margin-top:16px}
+</style>
+</head>
+<body>
+<div class="card">
+<h1>⚡ Token Monitor</h1>
+<div class="sub">API 余额 · 每30分钟自动更新</div>
+<div id="content" class="loading">⏳ 加载中...</div>
+<div class="time" id="timestamp"></div>
+</div>
+<script>
+fetch('api_status.json')
+  .then(r => r.json())
+  .then(d => {
+    let html = '';
+    if (d.deepseek && !d.deepseek.error) {
+      html += `<div class="row"><span class="label">● DeepSeek</span><span class="value ds">¥${d.deepseek.total_balance_cny.toFixed(2)}</span></div>`;
+      html += `<div class="row"><span class="label">  充值 / 赠送</span><span class="value" style="font-size:.8rem;color:#94a3b8">¥${d.deepseek.topped_up_cny.toFixed(2)} / ¥${d.deepseek.granted_cny.toFixed(2)}</span></div>`;
+      html += `<div class="row"><span class="label">  预估可用</span><span class="value" style="font-size:.8rem;color:#94a3b8">${(d.deepseek.estimated_tokens/1000000).toFixed(1)}M tokens</span></div>`;
+    }
+    if (d.anthropic && !d.anthropic.error && d.anthropic.remaining > 0) {
+      html += `<div class="row"><span class="label">● Anthropic</span><span class="value ant">${d.anthropic.remaining.toLocaleString()} tokens</span></div>`;
+    }
+    if (d.openai && !d.openai.error && d.openai.remaining > 0) {
+      html += `<div class="row"><span class="label">● OpenAI</span><span class="value oai">${d.openai.remaining.toLocaleString()} tokens</span></div>`;
+    }
+    if (!html) html = '<div class="error">⚠️ 请配置 API Key</div>';
+    document.getElementById('content').innerHTML = html;
+    document.getElementById('timestamp').textContent = '更新: ' + new Date(d.timestamp).toLocaleString('zh-CN');
+  })
+  .catch(() => document.getElementById('content').innerHTML = '<div class="error">❌ 数据加载失败</div>');
+</script>
+</body>
+</html>
