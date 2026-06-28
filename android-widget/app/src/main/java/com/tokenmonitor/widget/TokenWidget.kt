@@ -17,6 +17,8 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
+import androidx.glance.unit.dp
+import androidx.glance.unit.sp
 
 class TokenWidget : GlanceAppWidget() {
 
