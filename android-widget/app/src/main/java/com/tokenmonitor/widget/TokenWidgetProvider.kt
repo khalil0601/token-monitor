@@ -23,7 +23,7 @@ class TokenWidgetProvider : AppWidgetProvider() {
             val apiUrl = prefs.getString("api_url", "https://khalil0601.github.io/token-monitor")
                 ?: "https://khalil0601.github.io/token-monitor"
 
-            // Set click to open main activity
+            // Tap to open app (shows full dashboard)
             val intent = Intent(context, MainActivity::class.java).apply {
                 putExtra("api_url", apiUrl)
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
@@ -33,40 +33,35 @@ class TokenWidgetProvider : AppWidgetProvider() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
             views.setOnClickPendingIntent(R.id.widget_root, pendingIntent)
-            views.setTextViewText(R.id.widget_title, "⚡ Token Monitor")
 
-            // Fetch data and update
+            // Fetch data
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     val data = ApiService.fetchUsage(apiUrl)
+                    val sb = StringBuilder()
                     if (data != null) {
-                        val sb = StringBuilder()
                         data.deepseek?.let { ds ->
                             if (ds.error == null && (ds.totalBalanceCny ?: 0.0) > 0) {
-                                sb.append("● DS: ¥${"%.2f".format(ds.totalBalanceCny)}  余额\n")
+                                sb.append("● DS: ¥${"%.2f".format(ds.totalBalanceCny)}\n")
                             }
                         }
                         data.anthropic?.let { ant ->
                             if (ant.error == null && (ant.remaining ?: 0) > 0) {
-                                val pct = if (ant.usagePercent != null) " ${(100 - ant.usagePercent).toInt()}%" else ""
-                                sb.append("● Ant: ${fmt(ant.remaining ?: 0)}$pct\n")
+                                sb.append("● Ant: ${fmt(ant.remaining ?: 0)}\n")
                             }
                         }
                         data.openai?.let { oai ->
                             if (oai.error == null && (oai.remaining ?: 0) > 0) {
-                                val pct = if (oai.usagePercent != null) " ${(100 - oai.usagePercent).toInt()}%" else ""
-                                sb.append("● OAI: ${fmt(oai.remaining ?: 0)}$pct\n")
+                                sb.append("● OAI: ${fmt(oai.remaining ?: 0)}\n")
                             }
                         }
-                        if (sb.isEmpty()) {
-                            sb.append("⚠️ 请配置 API Key")
-                        }
-                        views.setTextViewText(R.id.widget_content, sb.toString().trim())
-                    } else {
-                        views.setTextViewText(R.id.widget_content, "⏳ 加载中...")
                     }
+                    if (sb.isEmpty()) sb.append("⚠️ 未配置")
+                    views.setTextViewText(R.id.widget_title, "⚡ Token")
+                    views.setTextViewText(R.id.widget_content, sb.toString().trim())
                 } catch (_: Exception) {
-                    views.setTextViewText(R.id.widget_content, "❌ 连接失败")
+                    views.setTextViewText(R.id.widget_title, "⚡ Token")
+                    views.setTextViewText(R.id.widget_content, "❌ 离线")
                 }
                 appWidgetManager.updateAppWidget(appWidgetId, views)
             }
