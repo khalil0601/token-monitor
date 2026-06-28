@@ -40,11 +40,5 @@
                 android:resource="@xml/token_widget_info" />
         </receiver>
 
-        <!-- Background update worker -->
-        <service
-            android:name=".TokenWidgetWorker"
-            android:exported="false"
-            android:permission="android.permission.BIND_JOB_SERVICE" />
-
     </application>
 </manifest>

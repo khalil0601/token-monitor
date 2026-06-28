@@ -6,8 +6,13 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.glance.appwidget.GlanceAppWidgetManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+
 class WidgetConfigActivity : Activity() {
 
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
@@ -15,10 +20,8 @@ class WidgetConfigActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Set the result to CANCELED first
         setResult(RESULT_CANCELED)
 
-        // Get widget ID
         appWidgetId = intent?.extras?.getInt(
             AppWidgetManager.EXTRA_APPWIDGET_ID,
             AppWidgetManager.INVALID_APPWIDGET_ID
@@ -29,9 +32,8 @@ class WidgetConfigActivity : Activity() {
             return
         }
 
-        // Simple programmatic layout
-        val layout = android.widget.LinearLayout(this).apply {
-            orientation = android.widget.LinearLayout.VERTICAL
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
             setPadding(48, 48, 48, 48)
             setBackgroundColor(0xFF0f172a.toInt())
         }
@@ -70,23 +72,29 @@ class WidgetConfigActivity : Activity() {
             text = "添加到桌面"
             setBackgroundColor(0xFF4f46e5.toInt())
             setTextColor(0xFFFFFFFF.toInt())
-            setPadding(24, 16, 24, 16)
             setOnClickListener {
                 val url = urlInput.text.toString().trim()
                 if (url.isNotEmpty()) {
-                    // Save URL
                     prefs.edit().putString("api_url", url).apply()
 
-                    // Update widget via Glance
-                    val glanceId = GlanceAppWidgetManager(this@WidgetConfigActivity)
-                        .getGlanceIdBy(appWidgetId)
-                    TokenWidget().update(this@WidgetConfigActivity, glanceId)
+                    // Launch coroutine for suspend widget update
+                    CoroutineScope(Dispatchers.Main).launch {
+                        try {
+                            val glanceId = GlanceAppWidgetManager(this@WidgetConfigActivity)
+                                .getGlanceIdBy(appWidgetId)
+                            TokenWidget().update(this@WidgetConfigActivity, glanceId)
+                        } catch (_: Exception) {
+                            // Widget update is best-effort during config
+                        }
+                    }
 
                     // Schedule periodic updates
                     TokenWidgetWorker.schedule(this@WidgetConfigActivity)
 
-                    // Return success
-                    val result = Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+                    val result = Intent().putExtra(
+                        AppWidgetManager.EXTRA_APPWIDGET_ID,
+                        appWidgetId
+                    )
                     setResult(RESULT_OK, result)
                     finish()
                 }

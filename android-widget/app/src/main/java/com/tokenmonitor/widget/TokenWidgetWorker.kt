@@ -1,12 +1,9 @@
 package com.tokenmonitor.widget
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.util.Log
-import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.updateAll
 import androidx.work.*
-import kotlinx.coroutines.*
 import java.util.concurrent.TimeUnit
 
 class TokenWidgetWorker(
@@ -16,13 +13,13 @@ class TokenWidgetWorker(
 
     override suspend fun doWork(): Result {
         return try {
-            Log.d("TokenWidget", "Starting widget update...")
+            Log.d("TokenWidget", "Starting periodic widget update...")
             val widget = TokenWidget()
             widget.updateAll(applicationContext)
             Log.d("TokenWidget", "Widget update complete")
             Result.success()
         } catch (e: Exception) {
-            Log.e("TokenWidget", "Update failed", e)
+            Log.e("TokenWidget", "Widget update failed", e)
             Result.retry()
         }
     }
@@ -36,7 +33,7 @@ class TokenWidgetWorker(
                 .build()
 
             val request = PeriodicWorkRequestBuilder<TokenWidgetWorker>(
-                15, TimeUnit.MINUTES // Update every 15 minutes
+                15, TimeUnit.MINUTES
             )
                 .setConstraints(constraints)
                 .setBackoffCriteria(

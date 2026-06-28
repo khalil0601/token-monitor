@@ -2,6 +2,7 @@ package com.tokenmonitor.widget
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
@@ -12,7 +13,14 @@ import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
-import androidx.glance.layout.*
+import androidx.glance.layout.Alignment
+import androidx.glance.layout.Column
+import androidx.glance.layout.Row
+import androidx.glance.layout.Spacer
+import androidx.glance.layout.fillMaxWidth
+import androidx.glance.layout.height
+import androidx.glance.layout.padding
+import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
@@ -34,12 +42,33 @@ class TokenWidget : GlanceAppWidget() {
             null
         }
 
+        // Pre-compute display strings
+        val dsBalance = if (data?.deepseek != null && data.deepseek.error == null && (data.deepseek.totalBalanceCny ?: 0.0) > 0)
+            "¥" + "%.2f".format(data.deepseek.totalBalanceCny) else ""
+        val dsSub = if (dsBalance.isNotEmpty()) "余额" else ""
+
+        val antRemaining = data?.anthropic?.remaining
+        val antLimit = data?.anthropic?.monthlyLimit
+        val antPct = data?.anthropic?.usagePercent
+        val antValue = if (antRemaining != null && antRemaining > 0)
+            fmt(antRemaining) + if (antPct != null) " " + (100 - antPct).toInt().toString() + "%" else "" else ""
+        val antSub = if (antRemaining != null && antRemaining > 0) "剩余 / " + fmt(antLimit ?: 0) else ""
+
+        val oaiRemaining = data?.openai?.remaining
+        val oaiLimit = data?.openai?.monthlyLimit
+        val oaiPct = data?.openai?.usagePercent
+        val oaiValue = if (oaiRemaining != null && oaiRemaining > 0)
+            fmt(oaiRemaining) + if (oaiPct != null) " " + (100 - oaiPct).toInt().toString() + "%" else "" else ""
+        val oaiSub = if (oaiRemaining != null && oaiRemaining > 0) "剩余 / " + fmt(oaiLimit ?: 0) else ""
+
+        val showAny = dsBalance.isNotEmpty() || antValue.isNotEmpty() || oaiValue.isNotEmpty()
+
         provideContent {
             GlanceTheme {
                 Column(
                     modifier = GlanceModifier
                         .fillMaxWidth()
-                        .background(ColorProvider(0xFF1e293b.toInt()))
+                        .background(ColorProvider(Color.parseColor("#1e293b")))
                         .cornerRadius(16.dp)
                         .padding(12.dp)
                         .clickable(
@@ -51,7 +80,7 @@ class TokenWidget : GlanceAppWidget() {
                             )
                         )
                 ) {
-                    // Header
+                    // === Header ===
                     Row(
                         modifier = GlanceModifier.fillMaxWidth(),
                         verticalAlignment = Alignment.Vertical.CenterVertically
@@ -59,7 +88,7 @@ class TokenWidget : GlanceAppWidget() {
                         Text(
                             text = "⚡ Token Monitor",
                             style = TextStyle(
-                                color = ColorProvider(0xFFe2e8f0.toInt()),
+                                color = ColorProvider(Color.parseColor("#e2e8f0")),
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold
                             ),
@@ -69,46 +98,138 @@ class TokenWidget : GlanceAppWidget() {
 
                     Spacer(modifier = GlanceModifier.height(6.dp))
 
-                    if (data != null) {
-                        // DeepSeek
-                        val dsData = data.deepseek
-                        if (dsData != null && dsData.error == null && dsData.totalBalanceCny != null) {
-                            makeProviderRow(
-                                label = "DeepSeek",
-                                value = "¥${"%.2f".format(dsData.totalBalanceCny)}",
-                                sub = "余额",
-                                color = 0xFF4f46e5.toInt()
+                    // === DeepSeek ===
+                    if (dsBalance.isNotEmpty()) {
+                        Row(
+                            modifier = GlanceModifier.fillMaxWidth().padding(vertical = 2.dp),
+                            verticalAlignment = Alignment.Vertical.CenterVertically
+                        ) {
+                            Text(
+                                text = "●",
+                                style = TextStyle(
+                                    color = ColorProvider(Color.parseColor("#4f46e5")),
+                                    fontSize = 8.sp
+                                )
                             )
+                            Spacer(modifier = GlanceModifier.width(4.dp))
+                            Text(
+                                text = "DeepSeek",
+                                style = TextStyle(
+                                    color = ColorProvider(Color.parseColor("#94a3b8")),
+                                    fontSize = 11.sp
+                                ),
+                                modifier = GlanceModifier.defaultWeight()
+                            )
+                            Column(horizontalAlignment = Alignment.Horizontal.End) {
+                                Text(
+                                    text = dsBalance,
+                                    style = TextStyle(
+                                        color = ColorProvider(Color.parseColor("#e2e8f0")),
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                )
+                                Text(
+                                    text = dsSub,
+                                    style = TextStyle(
+                                        color = ColorProvider(Color.parseColor("#64748b")),
+                                        fontSize = 9.sp
+                                    )
+                                )
+                            }
                         }
+                    }
 
-                        // Anthropic
-                        val antData = data.anthropic
-                        if (antData != null && antData.error == null && antData.remaining != null) {
-                            val pct = if (antData.usagePercent != null) " ${(100 - antData.usagePercent).toInt()}%" else ""
-                            makeProviderRow(
-                                label = "Anthropic",
-                                value = "${fmt(antData.remaining)}$pct",
-                                sub = "剩余 / ${fmt(antData.monthlyLimit ?: 0)}",
-                                color = 0xFFd97706.toInt()
+                    // === Anthropic ===
+                    if (antValue.isNotEmpty()) {
+                        Row(
+                            modifier = GlanceModifier.fillMaxWidth().padding(vertical = 2.dp),
+                            verticalAlignment = Alignment.Vertical.CenterVertically
+                        ) {
+                            Text(
+                                text = "●",
+                                style = TextStyle(
+                                    color = ColorProvider(Color.parseColor("#d97706")),
+                                    fontSize = 8.sp
+                                )
                             )
+                            Spacer(modifier = GlanceModifier.width(4.dp))
+                            Text(
+                                text = "Anthropic",
+                                style = TextStyle(
+                                    color = ColorProvider(Color.parseColor("#94a3b8")),
+                                    fontSize = 11.sp
+                                ),
+                                modifier = GlanceModifier.defaultWeight()
+                            )
+                            Column(horizontalAlignment = Alignment.Horizontal.End) {
+                                Text(
+                                    text = antValue,
+                                    style = TextStyle(
+                                        color = ColorProvider(Color.parseColor("#e2e8f0")),
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                )
+                                Text(
+                                    text = antSub,
+                                    style = TextStyle(
+                                        color = ColorProvider(Color.parseColor("#64748b")),
+                                        fontSize = 9.sp
+                                    )
+                                )
+                            }
                         }
+                    }
 
-                        // OpenAI
-                        val oaiData = data.openai
-                        if (oaiData != null && oaiData.error == null && oaiData.remaining != null) {
-                            val pct = if (oaiData.usagePercent != null) " ${(100 - oaiData.usagePercent).toInt()}%" else ""
-                            makeProviderRow(
-                                label = "OpenAI",
-                                value = "${fmt(oaiData.remaining)}$pct",
-                                sub = "剩余 / ${fmt(oaiData.monthlyLimit ?: 0)}",
-                                color = 0xFF10a37f.toInt()
+                    // === OpenAI ===
+                    if (oaiValue.isNotEmpty()) {
+                        Row(
+                            modifier = GlanceModifier.fillMaxWidth().padding(vertical = 2.dp),
+                            verticalAlignment = Alignment.Vertical.CenterVertically
+                        ) {
+                            Text(
+                                text = "●",
+                                style = TextStyle(
+                                    color = ColorProvider(Color.parseColor("#10a37f")),
+                                    fontSize = 8.sp
+                                )
                             )
+                            Spacer(modifier = GlanceModifier.width(4.dp))
+                            Text(
+                                text = "OpenAI",
+                                style = TextStyle(
+                                    color = ColorProvider(Color.parseColor("#94a3b8")),
+                                    fontSize = 11.sp
+                                ),
+                                modifier = GlanceModifier.defaultWeight()
+                            )
+                            Column(horizontalAlignment = Alignment.Horizontal.End) {
+                                Text(
+                                    text = oaiValue,
+                                    style = TextStyle(
+                                        color = ColorProvider(Color.parseColor("#e2e8f0")),
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                )
+                                Text(
+                                    text = oaiSub,
+                                    style = TextStyle(
+                                        color = ColorProvider(Color.parseColor("#64748b")),
+                                        fontSize = 9.sp
+                                    )
+                                )
+                            }
                         }
-                    } else {
+                    }
+
+                    // === Fallback ===
+                    if (!showAny) {
                         Text(
-                            text = "⏳ 加载中...",
+                            text = if (data != null) "⚠️ 请先配置 API Key" else "⏳ 加载中...",
                             style = TextStyle(
-                                color = ColorProvider(0xFF64748b.toInt()),
+                                color = ColorProvider(Color.parseColor("#64748b")),
                                 fontSize = 12.sp
                             )
                         )
@@ -118,42 +239,9 @@ class TokenWidget : GlanceAppWidget() {
         }
     }
 
-    // Must be called within provideContent {} block
-    @androidx.compose.runtime.Composable
-    private fun makeProviderRow(label: String, value: String, sub: String, color: Int) {
-        Row(
-            modifier = GlanceModifier.fillMaxWidth().padding(vertical = 2.dp),
-            verticalAlignment = Alignment.Vertical.CenterVertically
-        ) {
-            Text(
-                text = "●",
-                style = TextStyle(color = ColorProvider(color), fontSize = 8.sp)
-            )
-            Text(
-                text = " $label",
-                style = TextStyle(color = ColorProvider(0xFF94a3b8.toInt()), fontSize = 11.sp),
-                modifier = GlanceModifier.defaultWeight()
-            )
-            Column(horizontalAlignment = Alignment.Horizontal.End) {
-                Text(
-                    text = value,
-                    style = TextStyle(
-                        color = ColorProvider(0xFFe2e8f0.toInt()),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                )
-                Text(
-                    text = sub,
-                    style = TextStyle(color = ColorProvider(0xFF64748b.toInt()), fontSize = 9.sp)
-                )
-            }
-        }
-    }
-
     private fun fmt(n: Long): String = when {
-        n >= 1_000_000 -> "${"%.1f".format(n / 1_000_000.0)}M"
-        n >= 1_000 -> "${"%.1f".format(n / 1_000.0)}K"
+        n >= 1_000_000 -> "%.1f".format(n / 1_000_000.0) + "M"
+        n >= 1_000 -> "%.1f".format(n / 1_000.0) + "K"
         else -> n.toString()
     }
 
