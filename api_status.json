@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-06-28T11:28:03.606464+00:00",
+  "timestamp": "2026-06-28T11:30:07.732309+00:00",
   "anthropic": {
     "error": "not configured"
   },
@@ -8,10 +8,10 @@
   },
   "deepseek": {
     "provider": "deepseek",
-    "total_balance_cny": 4.19,
-    "topped_up_cny": 4.19,
+    "total_balance_cny": 4.15,
+    "topped_up_cny": 4.15,
     "granted_cny": 0.0,
-    "estimated_tokens": 2793333,
+    "estimated_tokens": 2766666,
     "unit": "CNY"
   }
 }
