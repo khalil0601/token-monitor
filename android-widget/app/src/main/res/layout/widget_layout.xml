@@ -5,27 +5,27 @@
     android:layout_height="match_parent"
     android:background="@drawable/widget_bg"
     android:orientation="vertical"
-    android:gravity="center_vertical"
-    android:padding="10dp">
+    android:gravity="center"
+    android:padding="8dp">
 
     <TextView
-        android:id="@+id/widget_title"
+        android:id="@+id/widget_balance"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="⚡ Token"
-        android:textColor="#e2e8f0"
-        android:textSize="12sp"
-        android:textStyle="bold" />
+        android:text="¥--"
+        android:textColor="#ffffff"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:fontFamily="sans-serif-medium" />
 
     <TextView
-        android:id="@+id/widget_content"
+        android:id="@+id/widget_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:lineSpacingExtra="2dp"
-        android:maxLines="4"
-        android:text="⏳"
-        android:textColor="#94a3b8"
-        android:textSize="10sp" />
+        android:layout_marginTop="2dp"
+        android:text="DeepSeek"
+        android:textColor="#a5b4fc"
+        android:textSize="10sp"
+        android:letterSpacing="0.1" />
 
 </LinearLayout>
