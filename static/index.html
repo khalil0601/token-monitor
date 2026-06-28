@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Token Monitor">
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+    <title>Token Monitor</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-left">
+                <h1>⚡ Token Monitor</h1>
+                <span class="subtitle">API 余额监控面板</span>
+            </div>
+            <button class="btn-refresh" onclick="refreshAll()" title="手动刷新">
+                <svg class="refresh-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <polyline points="1 20 1 14 7 14"></polyline>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+            </button>
+        </header>
+
+        <div class="last-updated">
+            <span class="dot" id="statusDot"></span>
+            <span id="lastUpdated">等待首次加载...</span>
+        </div>
+
+        <div class="cards">
+            <!-- Anthropic Card -->
+            <div class="card card-anthropic" id="anthropicCard">
+                <div class="card-header">
+                    <div class="provider-badge anthropic-badge">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                        Anthropic
+                    </div>
+                    <span class="card-status" id="anthropicStatus">●</span>
+                </div>
+                <div class="card-body">
+                    <div class="ring-container">
+                        <svg class="ring" viewBox="0 0 120 120" id="anthropicRing">
+                            <circle class="ring-bg" cx="60" cy="60" r="52"/>
+                            <circle class="ring-progress anthropic-progress" cx="60" cy="60" r="52"
+                                    id="anthropicCircle" stroke-dasharray="0 327"/>
+                        </svg>
+                        <div class="ring-text">
+                            <span class="ring-percent" id="anthropicPercent">--</span>
+                            <span class="ring-label">剩余</span>
+                        </div>
+                    </div>
+                    <div class="stats">
+                        <div class="stat-item">
+                            <span class="stat-label">已使用</span>
+                            <span class="stat-value" id="anthropicUsed">--</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">总额度</span>
+                            <span class="stat-value" id="anthropicLimit">--</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">预估费用</span>
+                            <span class="stat-value" id="anthropicCost">--</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="progress-bar">
+                        <div class="progress-fill anthropic-fill" id="anthropicBar"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OpenAI Card -->
+            <div class="card card-openai" id="openaiCard">
+                <div class="card-header">
+                    <div class="provider-badge openai-badge">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15l-5-5 1.41-1.41L11 14.17l4.59-4.58L17 11l-6 6z"/></svg>
+                        OpenAI
+                    </div>
+                    <span class="card-status" id="openaiStatus">●</span>
+                </div>
+                <div class="card-body">
+                    <div class="ring-container">
+                        <svg class="ring" viewBox="0 0 120 120" id="openaiRing">
+                            <circle class="ring-bg" cx="60" cy="60" r="52"/>
+                            <circle class="ring-progress openai-progress" cx="60" cy="60" r="52"
+                                    id="openaiCircle" stroke-dasharray="0 327"/>
+                        </svg>
+                        <div class="ring-text">
+                            <span class="ring-percent" id="openaiPercent">--</span>
+                            <span class="ring-label">剩余</span>
+                        </div>
+                    </div>
+                    <div class="stats">
+                        <div class="stat-item">
+                            <span class="stat-label">已使用</span>
+                            <span class="stat-value" id="openaiUsed">--</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">总额度</span>
+                            <span class="stat-value" id="openaiLimit">--</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">预估费用</span>
+                            <span class="stat-value" id="openaiCost">--</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="progress-bar">
+                        <div class="progress-fill openai-fill" id="openaiBar"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <span>数据每 60s 自动刷新</span>
+            <span class="separator">·</span>
+            <span class="env-warning" id="envWarning" style="display:none">⚠ 请配置 API Key</span>
+        </footer>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
