@@ -25,8 +25,6 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
-import androidx.glance.unit.Dp
-import androidx.glance.unit.Sp
 
 class TokenWidget : GlanceAppWidget() {
 
@@ -69,8 +67,8 @@ class TokenWidget : GlanceAppWidget() {
                     modifier = GlanceModifier
                         .fillMaxWidth()
                         .background(ColorProvider(Color.parseColor("#1e293b")))
-                        .cornerRadius(Dp(16f))
-                        .padding(Dp(12f))
+                        .cornerRadius(16)
+                        .padding(12)
                         .clickable(
                             onClick = actionStartActivity(
                                 Intent(context, MainActivity::class.java).apply {
@@ -80,7 +78,7 @@ class TokenWidget : GlanceAppWidget() {
                             )
                         )
                 ) {
-                    // === Header ===
+                    // Header
                     Row(
                         modifier = GlanceModifier.fillMaxWidth(),
                         verticalAlignment = Alignment.Vertical.CenterVertically
@@ -89,34 +87,34 @@ class TokenWidget : GlanceAppWidget() {
                             text = "⚡ Token Monitor",
                             style = TextStyle(
                                 color = ColorProvider(Color.parseColor("#e2e8f0")),
-                                fontSize = Sp(14f),
+                                fontSize = 14,
                                 fontWeight = FontWeight.Bold
                             ),
                             modifier = GlanceModifier.defaultWeight()
                         )
                     }
 
-                    Spacer(modifier = GlanceModifier.height(Dp(6f)))
+                    Spacer(modifier = GlanceModifier.height(6))
 
-                    // === DeepSeek ===
+                    // DeepSeek
                     if (dsBalance.isNotEmpty()) {
                         Row(
-                            modifier = GlanceModifier.fillMaxWidth().padding(vertical = Dp(2f)),
+                            modifier = GlanceModifier.fillMaxWidth().padding(vertical = 2),
                             verticalAlignment = Alignment.Vertical.CenterVertically
                         ) {
                             Text(
                                 text = "●",
                                 style = TextStyle(
                                     color = ColorProvider(Color.parseColor("#4f46e5")),
-                                    fontSize = Sp(8f)
+                                    fontSize = 8
                                 )
                             )
-                            Spacer(modifier = GlanceModifier.width(Dp(4f)))
+                            Spacer(modifier = GlanceModifier.width(4))
                             Text(
                                 text = "DeepSeek",
                                 style = TextStyle(
                                     color = ColorProvider(Color.parseColor("#94a3b8")),
-                                    fontSize = Sp(11f)
+                                    fontSize = 11
                                 ),
                                 modifier = GlanceModifier.defaultWeight()
                             )
@@ -125,7 +123,7 @@ class TokenWidget : GlanceAppWidget() {
                                     text = dsBalance,
                                     style = TextStyle(
                                         color = ColorProvider(Color.parseColor("#e2e8f0")),
-                                        fontSize = Sp(12f),
+                                        fontSize = 12,
                                         fontWeight = FontWeight.Bold
                                     )
                                 )
@@ -133,32 +131,32 @@ class TokenWidget : GlanceAppWidget() {
                                     text = dsSub,
                                     style = TextStyle(
                                         color = ColorProvider(Color.parseColor("#64748b")),
-                                        fontSize = Sp(9f)
+                                        fontSize = 9
                                     )
                                 )
                             }
                         }
                     }
 
-                    // === Anthropic ===
+                    // Anthropic
                     if (antValue.isNotEmpty()) {
                         Row(
-                            modifier = GlanceModifier.fillMaxWidth().padding(vertical = Dp(2f)),
+                            modifier = GlanceModifier.fillMaxWidth().padding(vertical = 2),
                             verticalAlignment = Alignment.Vertical.CenterVertically
                         ) {
                             Text(
                                 text = "●",
                                 style = TextStyle(
                                     color = ColorProvider(Color.parseColor("#d97706")),
-                                    fontSize = Sp(8f)
+                                    fontSize = 8
                                 )
                             )
-                            Spacer(modifier = GlanceModifier.width(Dp(4f)))
+                            Spacer(modifier = GlanceModifier.width(4))
                             Text(
                                 text = "Anthropic",
                                 style = TextStyle(
                                     color = ColorProvider(Color.parseColor("#94a3b8")),
-                                    fontSize = Sp(11f)
+                                    fontSize = 11
                                 ),
                                 modifier = GlanceModifier.defaultWeight()
                             )
@@ -167,7 +165,7 @@ class TokenWidget : GlanceAppWidget() {
                                     text = antValue,
                                     style = TextStyle(
                                         color = ColorProvider(Color.parseColor("#e2e8f0")),
-                                        fontSize = Sp(12f),
+                                        fontSize = 12,
                                         fontWeight = FontWeight.Bold
                                     )
                                 )
@@ -175,32 +173,32 @@ class TokenWidget : GlanceAppWidget() {
                                     text = antSub,
                                     style = TextStyle(
                                         color = ColorProvider(Color.parseColor("#64748b")),
-                                        fontSize = Sp(9f)
+                                        fontSize = 9
                                     )
                                 )
                             }
                         }
                     }
 
-                    // === OpenAI ===
+                    // OpenAI
                     if (oaiValue.isNotEmpty()) {
                         Row(
-                            modifier = GlanceModifier.fillMaxWidth().padding(vertical = Dp(2f)),
+                            modifier = GlanceModifier.fillMaxWidth().padding(vertical = 2),
                             verticalAlignment = Alignment.Vertical.CenterVertically
                         ) {
                             Text(
                                 text = "●",
                                 style = TextStyle(
                                     color = ColorProvider(Color.parseColor("#10a37f")),
-                                    fontSize = Sp(8f)
+                                    fontSize = 8
                                 )
                             )
-                            Spacer(modifier = GlanceModifier.width(Dp(4f)))
+                            Spacer(modifier = GlanceModifier.width(4))
                             Text(
                                 text = "OpenAI",
                                 style = TextStyle(
                                     color = ColorProvider(Color.parseColor("#94a3b8")),
-                                    fontSize = Sp(11f)
+                                    fontSize = 11
                                 ),
                                 modifier = GlanceModifier.defaultWeight()
                             )
@@ -209,7 +207,7 @@ class TokenWidget : GlanceAppWidget() {
                                     text = oaiValue,
                                     style = TextStyle(
                                         color = ColorProvider(Color.parseColor("#e2e8f0")),
-                                        fontSize = Sp(12f),
+                                        fontSize = 12,
                                         fontWeight = FontWeight.Bold
                                     )
                                 )
@@ -217,20 +215,20 @@ class TokenWidget : GlanceAppWidget() {
                                     text = oaiSub,
                                     style = TextStyle(
                                         color = ColorProvider(Color.parseColor("#64748b")),
-                                        fontSize = Sp(9f)
+                                        fontSize = 9
                                     )
                                 )
                             }
                         }
                     }
 
-                    // === Fallback ===
+                    // Fallback
                     if (!showAny) {
                         Text(
                             text = if (data != null) "⚠️ 请先配置 API Key" else "⏳ 加载中...",
                             style = TextStyle(
                                 color = ColorProvider(Color.parseColor("#64748b")),
-                                fontSize = Sp(12f)
+                                fontSize = 12
                             )
                         )
                     }
