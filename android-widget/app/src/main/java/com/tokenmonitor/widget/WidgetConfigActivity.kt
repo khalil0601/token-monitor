@@ -88,9 +88,6 @@ class WidgetConfigActivity : Activity() {
                         }
                     }
 
-                    // Schedule periodic updates
-                    TokenWidgetWorker.schedule(this@WidgetConfigActivity)
-
                     val result = Intent().putExtra(
                         AppWidgetManager.EXTRA_APPWIDGET_ID,
                         appWidgetId
