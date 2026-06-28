@@ -16,8 +16,7 @@ data class ProviderData(
     @SerializedName("monthly_limit") val monthlyLimit: Long?,
     val remaining: Long?,
     @SerializedName("usage_percent") val usagePercent: Double?,
-    @SerializedName("estimated_cost_usd") val estimatedCostUsd: Double?,
-    val unit: String?
+    @SerializedName("estimated_cost_usd") val estimatedCostUsd: Double?
 )
 
 data class DeepSeekData(

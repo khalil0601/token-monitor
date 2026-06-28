@@ -26,12 +26,9 @@ object ApiService {
                 val response = client.newCall(request).execute()
                 if (response.isSuccessful) {
                     val body = response.body?.string()
-                    if (body != null) {
-                        gson.fromJson(body, AllUsageResponse::class.java)
-                    } else null
+                    if (body != null) gson.fromJson(body, AllUsageResponse::class.java) else null
                 } else null
-            } catch (e: Exception) {
-                e.printStackTrace()
+            } catch (_: Exception) {
                 null
             }
         }

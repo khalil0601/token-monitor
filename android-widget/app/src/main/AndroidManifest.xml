@@ -9,16 +9,6 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.NoActionBar">
 
-        <!-- Configuration Activity (opens when adding widget) -->
-        <activity
-            android:name=".WidgetConfigActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
-            </intent-filter>
-        </activity>
-
-        <!-- Main Activity (opens when tapping widget title) -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -28,9 +18,8 @@
             </intent-filter>
         </activity>
 
-        <!-- Widget Receiver -->
         <receiver
-            android:name=".TokenWidgetReceiver"
+            android:name=".TokenWidgetProvider"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
